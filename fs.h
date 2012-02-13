@@ -50,6 +50,7 @@ struct mbr {
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
 void createFileSystem(char *name);
+void flushFileSystem(void);
 void loadFileSystem(char *name);
 
 #endif

@@ -19,9 +19,15 @@
 void createFS(char *name) {
 	// Prompt the user for the maximum FS size
 	printf("Enter the maximum size for this filesystem in MB [10]: ");
+	
+	// Get the input from user
+	char buf[20];
+	gets(buf);
+	// Process the input
 	UINT maxSize;
-	int replacements = scanf("%u", maxSize);
+	int replacements = sscanf(buf, "%u", &maxSize);
 	if(replacements == 0 || replacements == EOF) {
+		// User didn't provide a filesystem size
 		maxSize = 10;
 	}
 
@@ -35,9 +41,11 @@ void createFS(char *name) {
 
 	// Prompt the user for the cluster size
 	printf("Enter the cluster size for this filesystem in KB [8]: ");
+	gets(buf);
 	UINT clusterSize;
-	replacements = scanf("%u", clusterSize);
+	replacements = sscanf(buf, "%u\n", &clusterSize);
 	if(replacements == 0 || replacements == EOF) {
+		// User did not provide a cluster size
 		clusterSize = 8;
 	}
 	clusterSize = clusterSize * 1024;
@@ -67,8 +75,27 @@ void createFS(char *name) {
 	fsBootRecord.fatTable    = 2;
 
 	// @TODO: Create a root directory table
+	
 	// @TODO: Create a FAT
-	// @TODO: Flush the MBR
+	
+	// Flush the boot record to the FS file
+	flushBootRecord();
+}
+
+void flushBootRecord(void) {
+	// Seek to the beginning of the filesystem file
+	fseek(fsFile, 0, SEEK_SET);
+	
+	// Write out the bytes we know we have (eg stuff in the struct)
+	fwrite(&fsBootRecord, sizeof(MBR), 1, fsFile);
+
+	// Until we reach the size of a cluster write zeros
+	UINT bytesWritten = sizeof(MBR);
+	char zero = 0x0;
+	while(bytesWritten < fsBootRecord.clusterSize) {
+		fwrite(&zero, sizeof(char), 1, fsFile);
+		++bytesWritten;
+	}
 }
 
 void loadFS(char *name) {
