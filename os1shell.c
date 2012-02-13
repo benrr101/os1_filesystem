@@ -22,6 +22,8 @@
 #include "signalHandlers.h"
 #include "exec.h"
 
+#include "fs.h"
+
 // MAIN FUNCTION /////////////////////////////////////////////////////////////
 
 void trim(char *string) {
@@ -47,7 +49,26 @@ void trim(char *string) {
 /**
  *
  */
-int main(void) {
+int main(int argc, char *argv[]) {
+	// ARGUMENT PROCESSING /////////////////////////////////////////////
+	if(argc != 2) {
+		// There is not the correct number of arguments
+		printf("Usage: os1shell fsname\n");
+		printf("  fsname - name of existing virtual filesystem or one you wish to create\n");
+		exit(0);
+	}
+
+	// Check if the filesystem exists
+	FILE *temp = fopen(argv[1], "r");
+	if(temp) {
+		// Filesystem exists. Close it up and load it
+		fclose(temp);
+		loadFS(argv[1]);
+	} else {
+		// Filesystem does not exist. We need to create it
+		createFS(argv[1]);
+	}
+
 	// SETUP PROCEDURES ////////////////////////////////////////////////
 	// Initialize the history list
 	historyList = historyInit(MAX_HISTORY);
