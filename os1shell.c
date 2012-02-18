@@ -23,6 +23,7 @@
 #include "exec.h"
 
 #include "fs.h"
+#include "fsinit.h"
 
 // MAIN FUNCTION /////////////////////////////////////////////////////////////
 

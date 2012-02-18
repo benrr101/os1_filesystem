@@ -1,9 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////
-// OS1 FINAL PROJECT - Filesystem Functions
+// OS1 Final Project - Filesystem Initialization Header
 //
-// @file	fs.c
-// @descrip	This file implements the functions that perform manipulations
-//		and lookups on the virtual filesystem.
+// @file	fsinit.h
+// @descrip	This file implements the functions necessary for initialization
+//		of the filesystem. This includes creating/loading the
+//		filesystem as well as initailization of directory clusters that
+//		can happen after the filesystem is init'd.
 // @author	Benjamin Russell (brr1922)
 ////////////////////////////////////////////////////////////////////////////
 
@@ -14,6 +16,7 @@
 #include <string.h>
 
 #include "fs.h"
+#include "fsinit.h"
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
 

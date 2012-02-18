@@ -73,14 +73,5 @@ struct dirEntry {
 	UINT	type;		// Whether the entry is a file or a folder
 	UINT	creationDate;	// The creation date in UNIX timestamp
 };
-	
-
-// FUNCTIONS ///////////////////////////////////////////////////////////////
-UINT calcOffset(FSPTR addr);
-void createFileSystem(char *name);
-void flushBootRecord(void);
-void initDirTableCluster(FSPTR addr);
-void initFAT(FSPTR addr);
-void loadFileSystem(char *name);
 
 #endif
