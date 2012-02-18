@@ -33,6 +33,7 @@ struct mbr fsBootRecord;
 typedef unsigned int UINT;
 typedef unsigned int FSPTR;
 typedef struct mbr MBR;
+typedef int FatEntry;
 
 // STRUCTS /////////////////////////////////////////////////////////////////
 /**

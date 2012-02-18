@@ -60,6 +60,13 @@ void createFS(char *name) {
 		exit(1);
 	}
 
+	// Verify the filesystem is physically possible
+	UINT trueMax = (clusterSize / sizeof(FatEntry)) * clusterSize;
+	if(trueMax < maxSize) {
+		printf("Filesystem geometry is impossible. Please select new parameters\n");
+		exit(1);
+	}
+
 	// Everything checks out so we can create a new filesystem file
 	fsFile = fopen(name, "w+");
 	if(fsFile == NULL) {
