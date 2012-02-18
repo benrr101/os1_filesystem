@@ -21,6 +21,15 @@
 #define MIN_FS_SIZE 5
 #define FS_SIZE_MULTIPLE 1024 * 1024
 
+#define DIR_ENTRY_AVAILABLE 0x00
+#define DIR_ENTRY_DELETED 0xFF
+#define DIR_ENTRY_FILE 0x0000
+#define DIR_ENTRY_FOLDER 0xFFFF
+
+#define FAT_FREE_CLUSTER 0x0000
+#define FAT_RESERVED 0xFFFE
+#define FAT_EOC 0xFFFF
+
 // GLOBALS /////////////////////////////////////////////////////////////////
 
 // This will be a global pointer to the filesystem file
@@ -33,6 +42,7 @@ struct mbr fsBootRecord;
 typedef unsigned int UINT;
 typedef unsigned int FSPTR;
 typedef struct mbr MBR;
+typedef struct dirEntry DirectoryEntry;
 typedef int FatEntry;
 
 // STRUCTS /////////////////////////////////////////////////////////////////
@@ -49,9 +59,28 @@ struct mbr {
 	FSPTR	fatTable;	// Ptr to the first file allocation table
 };
 
+/**
+ * The dirEntry struct provides a predefined layout for the structure of a
+ * directory structure. This includes all necessary attributes describing a
+ * file/folder and a pointer to the location of the file/folder in the fs.
+ */
+struct dirEntry {
+	char	fileName[111];	// The filename, max of 112 chars. Byte 0
+				// denotes if the entry is available or has
+				// been deleted
+	UINT	index;		// The address of this file's first cluster
+	UINT	size;		// The size of the file
+	UINT	type;		// Whether the entry is a file or a folder
+	UINT	creationDate;	// The creation date in UNIX timestamp
+};
+	
+
 // FUNCTIONS ///////////////////////////////////////////////////////////////
+UINT calcOffset(FSPTR addr);
 void createFileSystem(char *name);
-void flushFileSystem(void);
+void flushBootRecord(void);
+void initDirTableCluster(FSPTR addr);
+void initFAT(FSPTR addr);
 void loadFileSystem(char *name);
 
 #endif

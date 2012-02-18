@@ -11,10 +11,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 
 #include "fs.h"
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
+
+void allocateFS(UINT size) {
+	// Seek to the beginning of the filesystem
+	fseek(fsFile, 0, SEEK_SET);
+
+	// Write out the number of bytes to the filesystem
+	UINT bytesWritten = 0;
+	char zero = 0x0;
+	while(bytesWritten < size) {
+		fwrite(&zero, sizeof(char), 1, fsFile);
+		++bytesWritten;
+        }
+}
+
+UINT calcOffset(FSPTR addr) {
+	// Offset = address * clusterSize
+	return addr * fsBootRecord.clusterSize;
+}
 
 void createFS(char *name) {
 	// Prompt the user for the maximum FS size
@@ -81,9 +100,14 @@ void createFS(char *name) {
 	fsBootRecord.rootDir     = 1;
 	fsBootRecord.fatTable    = 2;
 
-	// @TODO: Create a root directory table
-	
-	// @TODO: Create a FAT
+	// Allocate all the space for the filesystem
+	allocateFS(fsBootRecord.maxSize);
+
+	// Initialize the FAT
+	initFAT(fsBootRecord.fatTable);
+
+	// Initialize the first cluster of directory entries
+	initDirTableCluster(fsBootRecord.rootDir);
 	
 	// Flush the boot record to the FS file
 	flushBootRecord();
@@ -102,6 +126,55 @@ void flushBootRecord(void) {
 	while(bytesWritten < fsBootRecord.clusterSize) {
 		fwrite(&zero, sizeof(char), 1, fsFile);
 		++bytesWritten;
+	}
+}
+
+void initDirTableCluster(FSPTR addr) {
+	// Calculate the correct offset into the filesystem and seek to it
+	UINT offset = calcOffset(addr);
+	fseek(fsFile, offset, SEEK_SET);
+
+	// Create a blank directory entry
+	DirectoryEntry blank;
+	blank.fileName[0]   = DIR_ENTRY_AVAILABLE;
+	memset(&blank.fileName[1], 0x0, 111);
+	blank.index         = 0x0;
+	blank.size          = 0x0;
+	blank.type          = DIR_ENTRY_FILE;
+	blank.creationDate  = 0x0;
+
+	// Now allocate the cluster at the address with these directory entries
+	UINT entriesWritten = 0;
+	while(entriesWritten * sizeof(DirectoryEntry) 
+		< fsBootRecord.clusterSize) {
+		fwrite(&blank, sizeof(DirectoryEntry), 1, fsFile);
+		++entriesWritten;
+	}
+}
+
+void initFAT(FSPTR addr) {
+	// Calculate the correct offset into the filesystem and seek to it
+	UINT offset = calcOffset(addr);
+	fseek(fsFile, offset, SEEK_SET);
+
+	// Create blank FAT entry for every cluster
+	FatEntry clusterStatus;
+	UINT cluster = 0;
+	while(cluster < fsBootRecord.clusterSize / sizeof(FatEntry)) {
+		if(cluster == 0 || cluster == fsBootRecord.fatTable) {
+			// This cluster is reserved.
+			clusterStatus = FAT_RESERVED;
+		} else if(cluster == fsBootRecord.rootDir) {
+			// This is the end of the dir table FOR NOW
+			clusterStatus = FAT_EOC;
+		} else {
+			// This cluster is unallocated
+			clusterStatus = FAT_FREE_CLUSTER;
+		}
+
+		// Write this cluster to the FAT
+		fwrite(&clusterStatus, sizeof(FatEntry), 1, fsFile);
+		++cluster;
 	}
 }
 
