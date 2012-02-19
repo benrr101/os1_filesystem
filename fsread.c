@@ -108,7 +108,7 @@ FatEntry lookupFAT(FSPTR curCluster) {
 	
 	// Jump to the FAT plus the cluster we're looking at
 	UINT fatAddr = fsBootRecord.fatTable;
-	fseek(fsFile, fatAddr + curCluster, SEEK_SET);
+	fseek(fsFile, fatAddr + (curCluster * sizeof(FatEntry)), SEEK_SET);
 
 	// Read from the FAT at the current address
 	FatEntry result;

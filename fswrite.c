@@ -26,13 +26,13 @@ FSPTR createFile(char name[112]) {
 	// @DEBUG
 	printf("First Free Dir Entry = 0x%x\n", freeDir);
 	printf("First Free FAT Entry = 0x%x\n", freeFAT);
-	exit(1);
 
 	// Calculate cluster index from FAT entry
-	//FSPTR clusterIndex = calcClusterFromFat(freeFAT);
+	FSPTR clusterIndex = getClusterFromFatAddress(freeFAT);
+	printf("First Free Cluster = %d\n", clusterIndex);
 	
 	// Write to the fat to allocate the cluster
-	//writeToFAT(freeFAT, FAT_EOC);
+	writeToFAT(freeFAT, FAT_EOC);
 	
 	// Write to the directory table indicating that there is a file in it!
 	// Step 1) seek to the dir table address
@@ -42,7 +42,7 @@ FSPTR createFile(char name[112]) {
 	fwrite(&name, 112, 1, fsFile);
 
 	// Step 3) Write the index of the first cluster
-	//fwrite(&clusterIndex, sizeof(FSPTR), 1, fsFile);
+	fwrite(&clusterIndex, sizeof(FSPTR), 1, fsFile);
 
 	// Step 4) Write the type of the file
 	UINT type = DIR_ENTRY_FILE;
@@ -54,16 +54,19 @@ FSPTR createFile(char name[112]) {
 	fwrite(&type, sizeof(UINT), 1, fsFile);
 
 	// Return the index of the cluster
-	return /*clusterIndex*/NULL;
+	return clusterIndex;
 }
 
 void writeToFAT(UINT index, FatEntry value) {
 	// Seek to the index of the FAT
 	fseek(
 		fsFile, 
-		index + (fsBootRecord.fatTable * fsBootRecord.clusterSize),
+		index,
 		SEEK_SET);
+
+	// Temp var
+	FatEntry v = value;
 	
 	// Write that value
-	fwrite(&value, sizeof(FatEntry), 1, fsFile);
+	fwrite(&v, sizeof(FatEntry), 1, fsFile);
 }
