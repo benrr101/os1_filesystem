@@ -13,7 +13,9 @@
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
 
+FSPTR getClusterFromFatAddress(UINT fatAddress);
 UINT getFirstFreeDirEntry();
 UINT getFirstFreeFATEntry();
+FatEntry lookupFAT(FSPTR curCluster);
 
 #endif
