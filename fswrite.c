@@ -21,11 +21,11 @@
 FSPTR createFile(char name[112]) {
 	// Find the next free directory entry and FAT entry
 	UINT freeDir = getFirstFreeDirEntry();
-	//UINT freeFAT = getFirstFreeFATEntry();
+	UINT freeFAT = getFirstFreeFATEntry();
 
 	// @DEBUG
 	printf("First Free Dir Entry = 0x%x\n", freeDir);
-	//printf("First Free FAT Entry = 0x%x\n", freeFAT);
+	printf("First Free FAT Entry = 0x%x\n", freeFAT);
 	exit(1);
 
 	// Calculate cluster index from FAT entry

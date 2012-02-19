@@ -84,5 +84,27 @@ FatEntry lookupFAT(FSPTR curCluster) {
 }
 
 UINT getFirstFreeFATEntry() {
-	// Jump to the 
+	// Jump to the FAT table
+	UINT currentAddress = calcOffset(fsBootRecord.fatTable);
+	UINT endOfTable     = currentAddress + fsBootRecord.clusterSize;
+	fseek(fsFile, currentAddress, SEEK_SET);
+
+	// Loop until we find a free FAT entry
+	UINT result = 0;
+	do {
+		// Load the FatEntry from the table
+		FatEntry e;
+		fread(&e, sizeof(FatEntry), 1, fsFile);
+
+		// Is the cluster free?
+		if(e == FAT_FREE_CLUSTER) {
+			// Yep, we're good to go
+			result = currentAddress;
+		} else {
+			// Nope, advance to the next cluster
+			currentAddress += sizeof(FatEntry);
+		}
+	} while(result == 0);
+
+	return result;
 }
