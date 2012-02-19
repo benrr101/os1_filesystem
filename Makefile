@@ -1,5 +1,5 @@
 #
-# Created by gmakemake (Ubuntu Sep  7 2011) on Sat Feb 18 16:28:08 2012
+# Created by gmakemake (Ubuntu Sep  7 2011) on Sat Feb 18 18:45:47 2012
 #
 
 #
@@ -50,13 +50,13 @@ CCLIBFLAGS =
 
 
 CPP_FILES =	
-C_FILES =	exec.c fsinit.c history.c os1shell.c signalHandlers.c
+C_FILES =	exec.c fsinit.c fsread.c fswrite.c history.c os1shell.c signalHandlers.c
 PS_FILES =	
 S_FILES =	
-H_FILES =	exec.h fs.h fsinit.h history.h os1shell.h signalHandlers.h
+H_FILES =	exec.h fs.h fsinit.h fsread.h fswrite.h history.h os1shell.h signalHandlers.h
 SOURCEFILES =	$(H_FILES) $(CPP_FILES) $(C_FILES) $(S_FILES)
 .PRECIOUS:	$(SOURCEFILES)
-OBJFILES =	exec.o fsinit.o history.o signalHandlers.o 
+OBJFILES =	exec.o fsinit.o fsread.o fswrite.o history.o signalHandlers.o 
 
 #
 # Main targets
@@ -73,8 +73,10 @@ os1shell:	os1shell.o $(OBJFILES)
 
 exec.o:	os1shell.h
 fsinit.o:	fs.h fsinit.h
+fsread.o:	fs.h fsread.h
+fswrite.o:	fs.h fsread.h fswrite.h
 history.o:	history.h
-os1shell.o:	exec.h fs.h fsinit.h history.h os1shell.h signalHandlers.h
+os1shell.o:	exec.h fs.h fsinit.h fswrite.h history.h os1shell.h signalHandlers.h
 signalHandlers.o:	history.h os1shell.h signalHandlers.h
 
 #
