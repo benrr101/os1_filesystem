@@ -65,24 +65,6 @@ UINT getFirstFreeDirEntry() {
 	return entryAddress;
 }
 
-FatEntry lookupFAT(FSPTR curCluster) {
-	// Get the current position in the file
-	UINT curPos = ftell(fsFile);
-	
-	// Jump to the FAT plus the cluster we're looking at
-	UINT fatAddr = fsBootRecord.fatTable;
-	fseek(fsFile, fatAddr + curCluster, SEEK_SET);
-
-	// Read from the FAT at the current address
-	FatEntry result;
-	fread(&result, sizeof(FatEntry), 1, fsFile);
-	
-	// Set the position to where we started
-	fseek(fsFile, curPos, SEEK_SET);
-
-	return result;
-}
-
 UINT getFirstFreeFATEntry() {
 	// Jump to the FAT table
 	UINT currentAddress = calcOffset(fsBootRecord.fatTable);
@@ -105,6 +87,35 @@ UINT getFirstFreeFATEntry() {
 			currentAddress += sizeof(FatEntry);
 		}
 	} while(result == 0);
+
+	return result;
+}
+
+FSPTR getClusterFromFatAddress(UINT fatAddress) {
+	// First subtract off the address of the fat table
+	fatAddress -= fsBootRecord.fatTable * fsBootRecord.clusterSize;
+
+	// Next, divide by the size of the fat entry to get the final address
+	fatAddress /= sizeof(FatEntry);
+
+	// return it
+	return fatAddress;
+}
+
+FatEntry lookupFAT(FSPTR curCluster) {
+	// Get the current position in the file
+	UINT curPos = ftell(fsFile);
+	
+	// Jump to the FAT plus the cluster we're looking at
+	UINT fatAddr = fsBootRecord.fatTable;
+	fseek(fsFile, fatAddr + curCluster, SEEK_SET);
+
+	// Read from the FAT at the current address
+	FatEntry result;
+	fread(&result, sizeof(FatEntry), 1, fsFile);
+	
+	// Set the position to where we started
+	fseek(fsFile, curPos, SEEK_SET);
 
 	return result;
 }
