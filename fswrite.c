@@ -26,7 +26,6 @@ FSPTR createFile(char name[112]) {
 
 	// Calculate cluster index from FAT entry
 	FSPTR clusterIndex = getClusterFromFatAddress(freeFAT);
-	printf("First Free Cluster = %d\n", clusterIndex);
 	
 	// Write to the fat to allocate the cluster
 	writeToFAT(freeFAT, FAT_EOC);
@@ -47,7 +46,34 @@ FSPTR createFile(char name[112]) {
 
 void removeFile(char name[112]) {
 	// Find the file in the directory table
+	UINT dirAddr = getDirTableAddressByName(name);
+	fseek(fsFile, dirAddr, SEEK_SET);
+	DirectoryEntry dir;
+	fread(&dir, sizeof(DirectoryEntry), 1, fsFile);
+
+	// Store the cluster index for use soon
+	FSPTR index = dir.index;
 	
+	// Change the directory entry to denote the availability and write it
+	dir.fileName[0] = DIR_ENTRY_AVAILABLE;
+	fseek(fsFile, -1 * sizeof(DirectoryEntry), SEEK_CUR);
+	fwrite(&dir, sizeof(DirectoryEntry), 1, fsFile);
+
+	// Goto the FAT entry for the file
+	FatEntry entry = index;
+	do {
+		// Get the address for the fat table entry
+		UINT fatAddress = fsBootRecord.fatTable;
+		fatAddress *= fsBootRecord.clusterSize;
+		fatAddress += entry * sizeof(FatEntry);
+	
+		// Store the FAT value so we can safely rewrite it	
+		entry = lookupFAT(entry);
+		
+		// Rewrite to show that the cluster is free
+		writeToFAT(fatAddress, FAT_FREE_CLUSTER);
+
+	} while(entry != FAT_EOC);
 }
 
 void writeToFAT(UINT index, FatEntry value) {
