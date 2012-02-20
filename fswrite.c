@@ -23,10 +23,6 @@ FSPTR createFile(char name[112]) {
 	UINT freeDir = getFirstFreeDirEntry();
 	UINT freeFAT = getFirstFreeFATEntry();
 
-	// @DEBUG
-	printf("First Free Dir Entry = 0x%x\n", freeDir);
-	printf("First Free FAT Entry = 0x%x\n", freeFAT);
-
 	// Calculate cluster index from FAT entry
 	FSPTR clusterIndex = getClusterFromFatAddress(freeFAT);
 	printf("First Free Cluster = %d\n", clusterIndex);
@@ -57,12 +53,14 @@ FSPTR createFile(char name[112]) {
 	return clusterIndex;
 }
 
+void removeFile(char name[112]) {
+	// Find the file in the directory table
+	
+}
+
 void writeToFAT(UINT index, FatEntry value) {
 	// Seek to the index of the FAT
-	fseek(
-		fsFile, 
-		index,
-		SEEK_SET);
+	fseek(fsFile, index, SEEK_SET);
 
 	// Temp var
 	FatEntry v = value;

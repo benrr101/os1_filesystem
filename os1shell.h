@@ -17,6 +17,7 @@
 #define MAX_HISTORY 20
 
 #define HISTORY_COMMAND "history"
+#define TOUCH_COMMAND "touch"
 #define PROMPT "OS1Shell -> "
 
 #define true 8

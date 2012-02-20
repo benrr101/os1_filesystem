@@ -24,6 +24,9 @@
 
 #include "fs.h"
 #include "fsinit.h"
+#include "fsread.h"
+#include "fswrite.h"
+#include "fsops.h"
 
 // MAIN FUNCTION /////////////////////////////////////////////////////////////
 
@@ -70,6 +73,8 @@ int main(int argc, char *argv[]) {
 		createFS(argv[1]);
 	}
 
+	//@DEBUG
+
 	// SETUP PROCEDURES ////////////////////////////////////////////////
 	// Initialize the history list
 	historyList = historyInit(MAX_HISTORY);
@@ -111,7 +116,10 @@ int main(int argc, char *argv[]) {
 			continue;
 		} else if(strncmp(command, HISTORY_COMMAND, bytesread) == 0) {
 			// Output the history and go back
-			historyPrint(historyList);			
+			historyPrint(historyList);
+		} else if(strstr(command, TOUCH_COMMAND) != NULL) {
+			// @TODO: verify that we're in the filesystem
+			touch(command);
 		} else {
 			// Now that we have a complete command, we'll exec it
 			execCommand(command);
