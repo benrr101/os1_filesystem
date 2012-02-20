@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 
 #include "fs.h"
 #include "fswrite.h"
@@ -30,24 +31,15 @@ FSPTR createFile(char name[112]) {
 	// Write to the fat to allocate the cluster
 	writeToFAT(freeFAT, FAT_EOC);
 	
-	// Write to the directory table indicating that there is a file in it!
-	// Step 1) seek to the dir table address
+	// Create a directory table entry and write it out to the table
+	DirectoryEntry entry;
+	memcpy(entry.fileName, name, 112);
+	entry.index        = clusterIndex;
+	entry.size         = 0;
+	entry.type         = DIR_ENTRY_FILE;
+	entry.creationDate = time(NULL);
 	fseek(fsFile, freeDir, SEEK_SET);
-
-	// Step 2) Write the filename
-	fwrite(&name, 112, 1, fsFile);
-
-	// Step 3) Write the index of the first cluster
-	fwrite(&clusterIndex, sizeof(FSPTR), 1, fsFile);
-
-	// Step 4) Write the type of the file
-	UINT type = DIR_ENTRY_FILE;
-	fwrite(&type, sizeof(UINT), 1, fsFile);
-
-	// Step 5) Write the creation data
-	UINT seconds = time(NULL);
-	printf("CURRENT TIME: %d\n", seconds); // @DEBUG
-	fwrite(&type, sizeof(UINT), 1, fsFile);
+	fwrite(&entry, sizeof(DirectoryEntry), 1, fsFile);
 
 	// Return the index of the cluster
 	return clusterIndex;

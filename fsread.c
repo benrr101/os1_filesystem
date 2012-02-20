@@ -12,10 +12,66 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "fs.h"
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
+
+UINT getDirTableAddressByName(char name[112]) {
+	// Get the current address for restoration purposes
+	UINT curPos = ftell(fsFile);
+
+	// Seek to the location of the directory table
+	UINT dirTable    = calcOffset(fsBootRecord.rootDir);
+	UINT dirCluster  = fsBootRecord.rootDir;
+	UINT dirTableEnd = dirTable + fsBootRecord.clusterSize;
+	UINT currentAddr = dirTable;
+	fseek(fsFile, dirTable, SEEK_SET);
+
+	// Loop until we find the entry
+	UINT entryAddress = 0;
+	do {
+		// Read in the directory table entry at this address
+		DirectoryEntry entry;
+		fread(&entry, sizeof(DirectoryEntry), 1, fsFile);
+		
+		// Does this filename match?
+		printf("%s|\n%s|\n", name, entry.fileName);
+		if(strcmp(name, entry.fileName) == 0) {
+			// Yep, return the address
+			entryAddress = currentAddr;
+		} else {
+			// Nope.
+			// Are we at the end of the directory table?
+			if(currentAddr+sizeof(DirectoryEntry) >= dirTableEnd){
+				// YES.
+				// Is there another table we can jump to?
+				if(lookupFAT(dirCluster) == FAT_EOC) {
+					// NOPE. FILE DON'T EXIST
+					fseek(fsFile, curPos, SEEK_SET);
+					return 0;
+				} else {
+					// Yep, move to that location
+					dirCluster  = lookupFAT(dirCluster);
+					dirTable    = calcOffset(dirCluster);
+					dirTableEnd = dirTable + fsBootRecord.clusterSize;
+					currentAddr = dirTable;
+					fseek(fsFile, dirTable, SEEK_SET);
+				}
+			} else {
+				// Nope, advance the current location pointer
+				currentAddr += sizeof(DirectoryEntry);
+			}
+		}
+	} while(entryAddress == 0);
+				
+
+	// Restore the old location
+        fseek(fsFile, curPos, SEEK_SET);
+
+	return entryAddress;
+}
 
 UINT getFirstFreeDirEntry() {
 	// Seek to the location of the directory table

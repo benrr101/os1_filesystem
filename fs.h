@@ -65,7 +65,7 @@ struct mbr {
  * file/folder and a pointer to the location of the file/folder in the fs.
  */
 struct dirEntry {
-	char	fileName[111];	// The filename, max of 112 chars. Byte 0
+	char	fileName[112];	// The filename, max of 112 chars. Byte 0
 				// denotes if the entry is available or has
 				// been deleted
 	UINT	index;		// The address of this file's first cluster
