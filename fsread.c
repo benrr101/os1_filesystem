@@ -37,7 +37,6 @@ UINT getDirTableAddressByName(char name[112]) {
 		fread(&entry, sizeof(DirectoryEntry), 1, fsFile);
 		
 		// Does this filename match?
-		printf("%s|\n%s|\n", name, entry.fileName);
 		if(strcmp(name, entry.fileName) == 0) {
 			// Yep, return the address
 			entryAddress = currentAddr;
@@ -163,8 +162,9 @@ FatEntry lookupFAT(FSPTR curCluster) {
 	UINT curPos = ftell(fsFile);
 	
 	// Jump to the FAT plus the cluster we're looking at
-	UINT fatAddr = fsBootRecord.fatTable;
-	fseek(fsFile, fatAddr + (curCluster * sizeof(FatEntry)), SEEK_SET);
+	UINT fatAddr = fsBootRecord.fatTable * fsBootRecord.clusterSize;
+	fatAddr += (curCluster * sizeof(FatEntry));
+	fseek(fsFile, fatAddr, SEEK_SET);
 
 	// Read from the FAT at the current address
 	FatEntry result;
