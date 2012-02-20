@@ -60,3 +60,33 @@ void touch(char *command) {
 		printf("Usage: touch filename\n");
 	}
 }
+
+void rm(char *command) {
+	// Copy the command to a temp var for destruction by strtok
+	char commandCpy[BUFFER_SIZE];
+	strncpy(commandCpy, command, BUFFER_SIZE);
+	char fileName[112];
+	memset(fileName,0x0, 112);
+	
+	// Do the first strtok and start counting tokens
+	strtok(commandCpy, " ");
+	int tokens = 0;
+	char *tok = strtok(NULL, " ");
+	while(tok != NULL) {
+		// Increment the count of tokens
+		++tokens;
+
+		// Copy the filename into the buffer and get next token
+		strncpy(fileName, tok, 112);
+		tok = strtok(NULL, " ");
+		
+		// Delete it up
+		removeFile(fileName);
+	}
+
+	// If we still have no filenames, then print usage info
+	if(tokens == 0) {
+		printf("Error: Missing filename operand\n");
+		printf("Usage: rm filename\n");
+	}
+}

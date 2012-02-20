@@ -117,9 +117,12 @@ int main(int argc, char *argv[]) {
 		} else if(strncmp(command, HISTORY_COMMAND, bytesread) == 0) {
 			// Output the history and go back
 			historyPrint(historyList);
-		} else if(strstr(command, TOUCH_COMMAND) != NULL) {
+		} else if(strstr(command, TOUCH_COMMAND) == command) {
 			// @TODO: verify that we're in the filesystem
 			touch(command);
+		} else if(strstr(command, RM_COMMAND) == command) {
+			// @TODO: verify that we're in the filesystem
+			rm(command);
 		} else {
 			// Now that we have a complete command, we'll exec it
 			execCommand(command);

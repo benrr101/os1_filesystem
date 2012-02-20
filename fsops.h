@@ -15,5 +15,6 @@
 // FUNCTIONS ///////////////////////////////////////////////////////////////
 
 void touch(char *command);
+void rm(char *command);
 
 #endif
