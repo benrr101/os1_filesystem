@@ -13,12 +13,54 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "os1shell.h"
 #include "fs.h"
+#include "fsread.h"
 #include "fswrite.h"
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
+
+void ls(char *command) {
+	// Goto the directory table and get an entry
+	FSPTR dirCluster = fsBootRecord.rootDir;
+
+	// Iterate until we get to the end of the directory table
+	while(dirCluster != FAT_EOC) {
+		// Get the address of the cluster and go to it
+		UINT currentAddr = dirCluster * fsBootRecord.clusterSize;
+		UINT endOfTable  = currentAddr + fsBootRecord.clusterSize;
+		fseek(fsFile, currentAddr, SEEK_SET);
+
+		// Iterate until we get to the end of the cluster
+		while(currentAddr < endOfTable) {
+			// Read in a directory entry
+			DirectoryEntry e;
+			fread(&e, sizeof(DirectoryEntry), 1, fsFile);
+			
+			// Only output a line if the file is not available
+			// Calculate the creation date... damn.
+			struct tm * timeTM;
+			time_t time = e.creationDate;
+			timeTM = localtime(&time);
+			char date[13];
+			strftime(&date, 13, "%b %d %H:%M", timeTM);
+			
+			if(e.fileName[0] != DIR_ENTRY_AVAILABLE &&
+				e.fileName[0] != DIR_ENTRY_DELETED) {
+				printf("%s %d\t%s\n", date, e.size, e.fileName);
+			}
+		
+			// Advance the internal pointer
+			currentAddr += sizeof(DirectoryEntry);
+		}
+
+		// Get the next cluster from FAT
+		dirCluster = lookupFAT(dirCluster);
+	}
+}
+		
 
 void touch(char *command) {
 	// Copy the command to a temp var for destruction by strtok

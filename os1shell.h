@@ -17,6 +17,7 @@
 #define MAX_HISTORY 20
 
 #define HISTORY_COMMAND "history"
+#define LS_COMMAND "ls"
 #define RM_COMMAND "rm"
 #define TOUCH_COMMAND "touch"
 #define PROMPT "OS1Shell -> "
