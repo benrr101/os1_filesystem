@@ -22,6 +22,65 @@
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
 
+void cat(char *command) {
+	//Copy the command to a temp var for destruction by strtok
+	char commandCpy[BUFFER_SIZE];
+	strncpy(commandCpy, command, BUFFER_SIZE);
+	char fileName[112];
+	memset(fileName,0x0, 112);
+
+	// Do the first strtok and start counting tokens
+	strtok(commandCpy, " ");
+	int tokens = 0;
+	char *tok = strtok(NULL, " ");
+	if(tok != NULL) {
+		// We have a valid filename so look it up
+		// Step 0) Copy the token into the fileName buffer
+		strncpy(fileName, tok, 112);
+
+		// Step 1) Lookup the directory entry
+		UINT dirAddr = getDirTableAddressByName(fileName);
+		fseek(fsFile, dirAddr, SEEK_SET);
+		DirectoryEntry dir;
+		fread(&dir, sizeof(DirectoryEntry), 1, fsFile);
+
+		// Step 2) Setup for the loop
+		FSPTR cluster  = dir.index;
+		UINT bytesRead = 0;
+
+		// STEP 3) LOOP TIL THE END OF THE CHAIN
+		while(cluster != FAT_EOC) {
+			// Get the info about the cluster
+			UINT clusterStart = cluster * fsBootRecord.clusterSize;
+			UINT currentAddr  = clusterStart;
+			UINT clusterEnd= clusterStart+fsBootRecord.clusterSize;
+			fseek(fsFile, clusterStart, SEEK_SET);
+
+			// LOOP UNTIL AT END OF CLUSTER OR EOF
+			while(currentAddr < clusterEnd && bytesRead<dir.size) {
+				// Read a byte, print a byte
+				char c;
+				fread(&c, sizeof(char), 1, fsFile);
+				printf("%c", c);
+
+				// Increment byte count and address
+				++currentAddr;
+				++bytesRead;
+			}
+
+			// Load up the FAT entry for this cluster
+			cluster = lookupFAT(cluster);
+		} 
+
+		// Newline for clarity sake
+		printf("\n");
+	} else {
+		// We don't have a valid filename so print an error
+		printf("Error: Missing file operand\n");
+		printf("Usage: cat filename\n");
+	}
+}
+
 void ls(char *command) {
 	// Goto the directory table and get an entry
 	FSPTR dirCluster = fsBootRecord.rootDir;

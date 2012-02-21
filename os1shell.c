@@ -126,6 +126,9 @@ int main(int argc, char *argv[]) {
 		} else if(strstr(command, LS_COMMAND) == command) {
 			// @TODO: verify we're in the filesystem
 			ls(command);
+		} else if(strstr(command, CAT_COMMAND) == command) {
+			// @TODO: verify we're in the filesystem
+			cat(command);
 		} else {
 			// Now that we have a complete command, we'll exec it
 			execCommand(command);
