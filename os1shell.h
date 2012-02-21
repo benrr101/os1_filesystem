@@ -16,7 +16,10 @@
 #define BUFFER_SIZE 65
 #define MAX_HISTORY 20
 
+#define ROOT_DIR "/"
+
 #define CAT_COMMAND "cat"
+#define CD_COMMAND "cd"
 #define HISTORY_COMMAND "history"
 #define LS_COMMAND "ls"
 #define RM_COMMAND "rm"

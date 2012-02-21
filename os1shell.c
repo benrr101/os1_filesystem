@@ -73,8 +73,6 @@ int main(int argc, char *argv[]) {
 		createFS(argv[1]);
 	}
 
-	//@DEBUG
-
 	// SETUP PROCEDURES ////////////////////////////////////////////////
 	// Initialize the history list
 	historyList = historyInit(MAX_HISTORY);
@@ -82,6 +80,9 @@ int main(int argc, char *argv[]) {
 	// Initialize the command buffer
 	char command[BUFFER_SIZE];
 	memset(command, 0, BUFFER_SIZE);
+
+	// We're initially in the filesystem
+	int inFS = true;
 
 	// Change signal dispositions
 	registerHandlers();
@@ -117,18 +118,63 @@ int main(int argc, char *argv[]) {
 		} else if(strncmp(command, HISTORY_COMMAND, bytesread) == 0) {
 			// Output the history and go back
 			historyPrint(historyList);
+		} else if(strstr(command, CD_COMMAND) == command) {
+			// Compute the address of the filesystem
+			char path[100];
+			strcpy(path, ROOT_DIR);
+			strcat(path, argv[1]);
+			// Are we switching into the filesystem?
+			if(
+				strstr(command, path) != NULL &&
+				strlen(strstr(command, path)) == strlen(path)
+			) {
+				// Yep, switching into the filesystem
+				inFS = true;
+			} else {
+				// Nope, switching out of the filesystem
+				inFS = false;
+				// Change the working directory. Kinda sketch.
+				// BUT cd is not actually a command in /bin
+				// So tokenize the string to get the path
+				strtok(command, " ");
+				char *ptr = strtok(NULL, " ");
+				if(ptr != NULL && strtok(NULL, " ") == NULL) {
+					// Changing directories
+					chdir(ptr);
+				} else {
+					// Invalid destination
+					printf("Error: Missing path operand\n");
+					printf("Usage: cd path\n");
+				}
+			}
 		} else if(strstr(command, TOUCH_COMMAND) == command) {
-			// @TODO: verify that we're in the filesystem
-			touch(command);
+			// Verify that we're in the filesystem
+			if(inFS) {
+				touch(command);
+			} else {
+				execCommand(command);
+			}
 		} else if(strstr(command, RM_COMMAND) == command) {
-			// @TODO: verify that we're in the filesystem
-			rm(command);
+			// Verify that we're in the filesystem
+			if(inFS) {
+				rm(command);
+			} else {
+				execCommand(command);
+			}
 		} else if(strstr(command, LS_COMMAND) == command) {
-			// @TODO: verify we're in the filesystem
-			ls(command);
+			// Verify we're in the filesystem
+			if(inFS) {
+				ls(command);
+			} else {
+				execCommand(command);
+			}
 		} else if(strstr(command, CAT_COMMAND) == command) {
-			// @TODO: verify we're in the filesystem
-			cat(command);
+			// Verify we're in the filesystem
+			if(inFS) {
+				cat(command);
+			} else {
+				execCommand(command);
+			}
 		} else {
 			// Now that we have a complete command, we'll exec it
 			execCommand(command);
