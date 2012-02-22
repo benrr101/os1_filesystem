@@ -147,6 +147,18 @@ int main(int argc, char *argv[]) {
 					printf("Usage: cd path\n");
 				}
 			}
+		} else if(strstr(command, PWD_COMMAND) == command) {
+			// Print the working directory
+			if(inFS) {
+				// We're in the filesystem, so print that
+				char path[100];
+				strcpy(path, ROOT_DIR);
+				strcat(path, argv[1]);
+				printf("%s\n", path);
+			} else {
+				// We're not in the filesystem, so chain it
+				execCommand(command);
+			}
 		} else if(strstr(command, TOUCH_COMMAND) == command) {
 			// Verify that we're in the filesystem
 			if(inFS) {

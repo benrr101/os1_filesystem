@@ -22,6 +22,7 @@
 #define CD_COMMAND "cd"
 #define HISTORY_COMMAND "history"
 #define LS_COMMAND "ls"
+#define PWD_COMMAND "pwd"
 #define RM_COMMAND "rm"
 #define TOUCH_COMMAND "touch"
 #define PROMPT "OS1Shell -> "
