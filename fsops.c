@@ -17,6 +17,7 @@
 
 #include "os1shell.h"
 #include "fs.h"
+#include "fsops.h"
 #include "fsread.h"
 #include "fswrite.h"
 
@@ -129,15 +130,79 @@ void cp(char *command, int inFS, char *fsPath) {
 			dest = strtok(NULL, "/");
 		}
 	}
+	//@DEBUG:
+	printf("FROM FS %d -> TO FS%d\n", fromFS, toFS); 
 	
 	// CASES ///////////////////////////////////////////////////////////
-	// Case 1: Copying from root fs to root fs
 	if(!fromFS && !toFS) {
+		// Case 1: Copying from root fs to root fs
 		// Tell the OS to handle this
 		printf("%s\n", commandCpy);
 		execCommand(commandCpy);
+	} else if(fromFS && !toFS) {
+		// Case 2: Copying from the filesystem into the root fs
+		printf("Copying from FS to root FS\n");
+		cpFromFStoRootFS(source, dest);
+	} else if(toFS && !fromFS) {
+		// Case 3: Copying from root fs to the filesystem
+		printf("Copying from root FS to FS\n");
+	} else {
+		printf("Copying from fs to fs\n");
 	}
-}	
+}
+
+void cpFromFStoRootFS(char *source, char *dest) {
+	// Does the file exist?
+	UINT dirAddr = getDirTableAddressByName(source);
+	if(dirAddr == 0) {
+		printf("Error: Source file does not exist\n");
+		return;
+	}
+
+	// Open the destination file
+	FILE *destFile = fopen(dest, "w");
+	if(destFile == NULL) {
+		// Destination file could not be opened
+		fprintf(stderr, "Could not open destination file\n");
+		perror("fopen");
+		return;
+	}
+
+	// Open the directory entry of the source file
+	DirectoryEntry dir;
+	fseek(fsFile, dirAddr, SEEK_SET);
+	fread(&dir, sizeof(DirectoryEntry), 1, fsFile);
+
+	// Goto the start of the source file
+	FSPTR cluster = dir.index;
+	UINT bytesRead = 0;
+
+	// Loop until the end of the chain of clusters for the file
+	while(cluster != FAT_EOC) {
+		// Get info about the cluster
+		UINT clusterStart = cluster * fsBootRecord.clusterSize;
+		UINT currentAddr  = clusterStart;
+		UINT clusterEnd   = clusterStart + fsBootRecord.clusterSize;
+		fseek(fsFile, currentAddr, SEEK_SET);
+
+		// Loop until end of the cluster or file
+		while(currentAddr < clusterEnd && bytesRead < dir.size) {
+			// Read a byte, write a byte
+			char c;
+			fread(&c, sizeof(char), 1, fsFile);
+			fwrite(&c, sizeof(char), 1, destFile);
+
+			// Increment the counter
+			++bytesRead;
+		}
+
+		// Get the next cluster of the file
+		cluster = lookupFAT(cluster);
+	}
+
+	// Close up the destination file
+	fclose(destFile);
+}
 
 
 void ls(char *command) {

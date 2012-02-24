@@ -16,6 +16,7 @@
 
 void cat(char *command);
 void cp(char *command, int inFS, char *path);
+void cpFromFStoRootFS(char *source, char *dest);
 void ls(char *command);
 void touch(char *command);
 void rm(char *command);
