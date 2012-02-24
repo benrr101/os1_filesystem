@@ -15,6 +15,7 @@
 // FUNCTIONS ///////////////////////////////////////////////////////////////
 
 void cat(char *command);
+void cp(char *command, int inFS, char *path);
 void ls(char *command);
 void touch(char *command);
 void rm(char *command);

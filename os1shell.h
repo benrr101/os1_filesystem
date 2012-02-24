@@ -20,6 +20,7 @@
 
 #define CAT_COMMAND "cat"
 #define CD_COMMAND "cd"
+#define CP_COMMAND "cp"
 #define HISTORY_COMMAND "history"
 #define LS_COMMAND "ls"
 #define PWD_COMMAND "pwd"

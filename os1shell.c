@@ -84,6 +84,11 @@ int main(int argc, char *argv[]) {
 	// We're initially in the filesystem
 	int inFS = true;
 
+	// Compute the address of the filesystem
+	char path[100];
+	strcpy(path, ROOT_DIR);
+	strcat(path, argv[1]);
+
 	// Change signal dispositions
 	registerHandlers();
 
@@ -119,10 +124,6 @@ int main(int argc, char *argv[]) {
 			// Output the history and go back
 			historyPrint(historyList);
 		} else if(strstr(command, CD_COMMAND) == command) {
-			// Compute the address of the filesystem
-			char path[100];
-			strcpy(path, ROOT_DIR);
-			strcat(path, argv[1]);
 			// Are we switching into the filesystem?
 			if(
 				strstr(command, path) != NULL &&
@@ -187,6 +188,9 @@ int main(int argc, char *argv[]) {
 			} else {
 				execCommand(command);
 			}
+		} else if(strstr(command, CP_COMMAND) == command) {
+			// Pass the call to the fancy cp function
+			cp(command, inFS, path);
 		} else {
 			// Now that we have a complete command, we'll exec it
 			execCommand(command);

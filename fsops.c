@@ -81,6 +81,65 @@ void cat(char *command) {
 	}
 }
 
+void cp(char *command, int inFS, char *fsPath) {
+	// Determine what mode we're going to use to do the copying
+	// Step 0) Duplicate the command so we don't destroy it
+	char commandCpy[BUFFER_SIZE];
+	strncpy(commandCpy, command, BUFFER_SIZE);	
+
+	// Step 1) Tokenize the command into the cp and 2 operands
+	strtok(command, " ");
+	char *source = strtok(NULL, " ");
+	char *dest   = strtok(NULL, " ");
+
+	// Verify that we have no more and no less tokens
+	if(source == NULL || dest == NULL || strtok(NULL, " ") != NULL) {
+		printf("Error: Missing file operand\n");
+		printf("Usage: cp source_file destination_file\n");
+	}
+
+	// Step 2) Is the source in the filesystem?
+	int fromFS = false;
+	if(
+		strstr(source, fsPath) == source		// Eg: /fsName/file
+		|| (inFS && getDirTableAddressByName(source)) 	// Eg: fileinfs
+	) {
+		// Source is in the filesystem
+		fromFS = true;
+
+		// Remove the fsPath from the source path if needed
+		if(strstr(source, fsPath) == source) {
+			strtok(source, "/");
+			source = strtok(NULL, "/");
+		}
+	}
+
+	// Step 3) Is the destination in the filesystem?
+	int toFS = false;
+	if(
+		strstr(dest, fsPath) == dest		// Eg: /fsName/file
+		|| inFS && strstr(dest, "/") != dest	// Doesn't start with /
+	) {
+		// Destination is in the filesystem
+		toFS = true;
+		
+		// Strip off the /fs
+		if(strstr(dest, fsPath) == dest) {
+			strtok(dest, "/");
+			dest = strtok(NULL, "/");
+		}
+	}
+	
+	// CASES ///////////////////////////////////////////////////////////
+	// Case 1: Copying from root fs to root fs
+	if(!fromFS && !toFS) {
+		// Tell the OS to handle this
+		printf("%s\n", commandCpy);
+		execCommand(commandCpy);
+	}
+}	
+
+
 void ls(char *command) {
 	// Goto the directory table and get an entry
 	FSPTR dirCluster = fsBootRecord.rootDir;
