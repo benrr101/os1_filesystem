@@ -130,8 +130,6 @@ void cp(char *command, int inFS, char *fsPath) {
 			dest = strtok(NULL, "/");
 		}
 	}
-	//@DEBUG:
-	printf("FROM FS %d -> TO FS%d\n", fromFS, toFS); 
 	
 	// CASES ///////////////////////////////////////////////////////////
 	if(!fromFS && !toFS) {
@@ -205,6 +203,43 @@ void cpFromFStoRootFS(char *source, char *dest) {
 	fclose(destFile);
 }
 
+void cpfromRootFStoFS(char *source, char *dest) {
+	// Open the source file
+	FILE *sourceFile = fopen(source, "r");
+	if(sourceFile == NULL) {
+		// Source file could not be opened
+		fprintf(stderr, "Error: Could not open source file\n");
+		perror("fopen");
+		return;
+	}
+
+	// Does the destination file exist?
+	UINT dirAddr = getDirTableAddressByName(dest);
+	if(dirAddr != 0) {
+		// File exists, so we have to remove it first
+		removeFile(dest);
+	}
+
+	// Now we create the file so we can write to it
+	FSPTR cluster = createFile(dest);
+	if(cluster == 0) {
+		// There was a failure
+		fprintf(stderr, "Error: Could not create destination file\n");
+	}
+
+	// Calculate info about the cluster and seek to it
+	UINT clusterStart = cluster * fsBootRecord.clusterSize;
+	UINT currentAddr  = clusterStart;
+	UINT clusterEnd   = clusterStart + fsBootRecord.clusterSize;
+	fseek(fsFile, result * fsBootRecord, SEEK_SET);
+	
+	// Iterate until we reach the end of the file
+	char c;
+	while(fread(&c, sizeof(char), 1, sourceFile) == 1) {
+		// Are we at the end of the cluster?
+		if(currentAddr 
+
+}
 
 void ls(char *command) {
 	// Goto the directory table and get an entry
