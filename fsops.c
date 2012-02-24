@@ -194,6 +194,7 @@ void cpFromFStoRootFS(char *source, char *dest) {
 
 			// Increment the counter
 			++bytesRead;
+			++currentAddr;
 		}
 
 		// Get the next cluster of the file
