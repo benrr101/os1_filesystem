@@ -19,6 +19,33 @@
 #include "fsread.h"
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
+FSPTR allocateCluster(FSPTR currentCluster) {
+	// Store the current location in the FS file
+	UINT curPos = ftell(fsFile);
+
+	// Find the next available cluster in the FAT table
+	UINT curClusterAddr = (fsBootRecord.fatTable * fsBootRecord.clusterSize)
+		+ (currentCluster * sizeof(FatEntry));
+	UINT fatAddr = getFirstFreeFATEntry();
+	
+	// Verify that we got a result
+	if(fatAddr == 0) {
+		return 0;
+	}
+
+	// Calculate the cluster that this cooresponds to
+	FSPTR cluster = (fatAddr 
+		- (fsBootRecord.fatTable * fsBootRecord.clusterSize))
+		/ sizeof(FatEntry);
+	
+	// Write to the current cluster and point to the next cluster
+	writeToFAT(curClusterAddr, cluster);
+	writeToFAT(fatAddr, FAT_EOC);
+
+	// Return the cluster
+	return cluster;
+}
+
 FSPTR createFile(char name[112]) {
 	// Find the next free directory entry and FAT entry
 	UINT freeDir = getFirstFreeDirEntry();
