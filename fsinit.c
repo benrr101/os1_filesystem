@@ -33,11 +33,6 @@ void allocateFS(UINT size) {
         }
 }
 
-UINT calcOffset(FSPTR addr) {
-	// Offset = address * clusterSize
-	return addr * fsBootRecord.clusterSize;
-}
-
 void createFS(char *name) {
 	// Prompt the user for the maximum FS size
 	printf("Enter the maximum size for this filesystem in MB [10]: ");

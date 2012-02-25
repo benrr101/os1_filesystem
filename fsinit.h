@@ -13,7 +13,6 @@
 #define OS1FS_init
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
-UINT calcOffset(FSPTR addr);
 void createFileSystem(char *name);
 void flushBootRecord(void);
 void initDirTableCluster(FSPTR addr);
