@@ -67,7 +67,7 @@ void cat(char *command) {
 				// Read a byte, print a byte
 				char c;
 				fread(&c, sizeof(char), 1, fsFile);
-				printf("%c", c);
+				printf("%c", c);	// KEEP THIS LINE DAMNIT
 
 				// Increment byte count and address
 				++currentAddr;
@@ -79,11 +79,11 @@ void cat(char *command) {
 		} 
 
 		// Newline for clarity sake
-		printf("\n");
+		printf("\n"); // AND THIS ONE TOO.
 	} else {
 		// We don't have a valid filename so print an error
-		printf("Error: Missing file operand\n");
-		printf("Usage: cat filename\n");
+		fprintf(stderr, "Error: Missing file operand\n");
+		fprintf(stderr, "Usage: cat filename\n");
 	}
 }
 
@@ -100,8 +100,8 @@ void cp(char *command, int inFS, char *fsPath) {
 
 	// Verify that we have no more and no less tokens
 	if(source == NULL || dest == NULL || strtok(NULL, " ") != NULL) {
-		printf("Error: Missing file operand\n");
-		printf("Usage: cp source_file destination_file\n");
+		fprintf(stderr, "Error: Missing file operand\n");
+		fprintf(stderr, "Usage: cp source_file destination_file\n");
 	}
 
 	// Step 2) Is the source in the filesystem?
@@ -128,7 +128,7 @@ void cpFromFStoRootFS(char *source, char *dest) {
 	// Does the file exist?
 	UINT dirAddr = getDirTableAddressByName(source);
 	if(dirAddr == 0) {
-		printf("Error: Source file does not exist\n");
+		fprintf(stderr, "Error: Source file does not exist\n");
 		return;
 	}
 
@@ -447,14 +447,14 @@ void touch(char *command) {
 		UINT result = createFile(fileName);
 		if(result == 0) {
 			// There was a failure
-			printf("Error: Could not create file %s\n", fileName);
+			fprintf(stderr, "Error: Could not create file %s\n", fileName);
 		}
 	}
 
 	// If we still have no filenames, then print the usage info
 	if(tokens == 0) {
-		printf("Error: Missing filename operand\n");
-		printf("Usage: touch filename\n");
+		fprintf(stderr, "Error: Missing filename operand\n");
+		fprintf(stderr, "Usage: touch filename\n");
 	}
 }
 
@@ -483,7 +483,7 @@ void rm(char *command) {
 
 	// If we still have no filenames, then print usage info
 	if(tokens == 0) {
-		printf("Error: Missing filename operand\n");
-		printf("Usage: rm filename\n");
+		fprintf(stderr, "Error: Missing filename operand\n");
+		fprintf(stderr, "Usage: rm filename\n");
 	}
 }
