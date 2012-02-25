@@ -147,6 +147,7 @@ void cp(char *command, int inFS, char *fsPath) {
 		cpFromRootFStoFS(source, dest);
 	} else {
 		printf("Copying from fs to fs\n");
+		cpFromFStoFS(source, dest);
 	}
 }
 
@@ -280,6 +281,68 @@ void cpFromRootFStoFS(char *source, char *dest) {
 	fseek(fsFile, -1 * sizeof(DirectoryEntry), SEEK_CUR);
 	fwrite(&dir, sizeof(DirectoryEntry), 1, fsFile);
 }
+
+void cpFromFStoFS(char *source, char *dest) {
+	// Does the source file exist?
+	UINT sourceDirAddr = getDirTableAddressByName(source);
+	if(sourceDirAddr == 0) {
+		// File does not exist
+		fprintf(stderr, "Error: Source file does not exist.\n");
+	}
+
+	// Load the source directory table
+	fseek(fsFile, sourceDirAddr, SEEK_SET);
+	DirectoryEntry sourceDir;
+	fread(&sourceDir, sizeof(DirectoryEntry), 1, fsFile);
+	FSPTR sourceCluster = sourceDir.index;
+
+	// Does the destination exist?
+	if(getDirTableAddressByName(dest) != 0) {
+		// File does exist, so remove it
+		removeFile(dest);
+	}
+
+	// Now create the new destination file
+	FSPTR newCluster = createFile(dest);
+	
+	// Find the directory entry for this file, read it in, change size
+	UINT destDirAddr = getDirTableAddressByName(dest);
+	fseek(fsFile, destDirAddr, SEEK_SET);
+	DirectoryEntry destDir;
+	fread(&destDir, sizeof(DirectoryEntry), 1, fsFile);
+	destDir.size = sourceDir.size;
+	fseek(fsFile, -1 * sizeof(DirectoryEntry), SEEK_CUR);
+	fwrite(&destDir, sizeof(DirectoryEntry), 1, fsFile);
+
+	// Iterate over the clusters of the source file
+	while(sourceCluster != FAT_EOC) {
+		// Seek to the cluster
+		fseek(fsFile, 
+			sourceCluster * fsBootRecord.clusterSize, 
+			SEEK_SET);
+		
+		// Read in the entire cluster
+		char clusterData[fsBootRecord.clusterSize];
+		fread(&clusterData, 
+			sizeof(char), 
+			fsBootRecord.clusterSize, 
+			fsFile);
+
+		// Write the cluster
+		fseek(fsFile, newCluster *fsBootRecord.clusterSize, SEEK_SET);
+		fwrite(&clusterData,
+			sizeof(char),
+			fsBootRecord.clusterSize,
+			fsFile);
+		
+		// Load up the next cluster to read from
+		sourceCluster = lookupFAT(sourceCluster);
+		if(sourceCluster != FAT_EOC) {
+			// We need another cluster to write into
+			newCluster = allocateCluster(newCluster);
+		}
+	}
+}	
 
 void ls(char *command) {
 	// Goto the directory table and get an entry
