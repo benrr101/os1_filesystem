@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "fs.h"
+#include "fsread.h"
 #include "os1shell.h"
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
@@ -67,50 +68,50 @@ UINT getDirTableAddressByName(char name[112]) {
 
 UINT getFirstFreeDirEntry() {
 	// Seek to the location of the directory table
-	UINT dirTable    = calcOffset(fsBootRecord.rootDir);
-	UINT dirCluster  = fsBootRecord.rootDir;
-	UINT dirTableEnd = dirTable + fsBootRecord.clusterSize;
-	UINT currentAddr = dirTable;
-	fseek(fsFile, dirTable, SEEK_SET);
+	FSPTR dirCluster = fsBootRecord.rootDir;
+	FSPTR lastCluster = fsBootRecord.rootDir;
 
-	// Loop until we find a available entry
-	UINT entryAddress = 0;
-	do {
-		// Read in the directory table entry at this address
-		DirectoryEntry entry;
-		fread(&entry, sizeof(DirectoryEntry), 1, fsFile);
+	// Iterate until we get to the end of the directory table
+	while(dirCluster != FAT_EOC) {
+		// Get the info about the cluster
+		UINT dirTable    = calcOffset(dirCluster);
+		UINT currAddr    = dirTable;
+		UINT dirTableEnd = dirTable + fsBootRecord.clusterSize;
+		fseek(fsFile, currAddr, SEEK_SET);
 
-		// Is the current directory table entry 
-		if(entry.fileName[0] == DIR_ENTRY_AVAILABLE) {
-			// This entry is free, so return it
-			entryAddress = currentAddr;
-		} else {
-			// Entry isn't free.
-			// Are we at the end of the directory table?
-			if(currentAddr+sizeof(DirectoryEntry) >= dirTableEnd){
-				// Is there another table we can jump to?
-				if(lookupFAT(dirCluster) == FAT_EOC) {
-					// NOPE. Initialize a new directory table clust
-					// @TODO: ^^^
-					printf("FUCKSTICKS.\n");
-					exit(1);
-				} else {
-					// Yep, jump to that location
-					dirCluster = lookupFAT(dirCluster);
-					dirTable = calcOffset(dirCluster);
-					dirTableEnd = dirTable + fsBootRecord.clusterSize;
-					currentAddr = dirTable;
-					fseek(fsFile, dirTable, SEEK_SET);
-				}
-			} else {
-				// Nope, advance the current address and loop
-				currentAddr += sizeof(DirectoryEntry);
+		// Loop until we've read all the directory entries
+		while(currAddr < dirTableEnd) {
+			// Read in the directory entry
+			DirectoryEntry entry;
+			fread(&entry, sizeof(DirectoryEntry), 1, fsFile);
+			
+			if(entry.fileName[0] == DIR_ENTRY_AVAILABLE) {
+				// This entry is free, so return it
+				return currAddr;
 			}
+
+			// Advance the counter!
+			currAddr += sizeof(DirectoryEntry);
 		}
 
-	} while(entryAddress == 0);
+		// Load up the next dirCluster
+		lastCluster = dirCluster;
+		dirCluster = lookupFAT(dirCluster);
+	}
 
-	return entryAddress;
+	// If we made it this far, we need another directory table
+	UINT fatEntryAddr = getFirstFreeFATEntry();
+	FSPTR newCluster = (fatEntryAddr 
+			- (fsBootRecord.fatTable * fsBootRecord.clusterSize))
+			/ sizeof(FatEntry);
+	UINT dirTableAddr = newCluster * fsBootRecord.clusterSize;
+	initDirTableCluster(newCluster);
+	writeToFAT(
+		(lastCluster * sizeof(FatEntry)) 
+		+ (fsBootRecord.fatTable * fsBootRecord.clusterSize)
+		, newCluster);
+	writeToFAT(fatEntryAddr, FAT_EOC);
+	return dirTableAddr;
 }
 
 UINT getFirstFreeFATEntry() {
