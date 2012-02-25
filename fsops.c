@@ -343,6 +343,9 @@ void cpFromFStoFS(char *source, char *dest) {
 	}
 }
 
+/**
+ * Prints out the information about the filesystem.
+ */
 void df() {
 	// Print the info from the boot record
 	printf("Disk Size (B):\t\t%d\n", fsBootRecord.maxSize);
