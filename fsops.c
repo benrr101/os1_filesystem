@@ -340,7 +340,35 @@ void cpFromFStoFS(char *source, char *dest) {
 			newCluster = allocateCluster(newCluster);
 		}
 	}
-}	
+}
+
+void df() {
+	// Print the info from the boot record
+	printf("Disk Size (B):\t\t%d\n", fsBootRecord.maxSize);
+	printf("Cluster Size (B):\t%d\n", fsBootRecord.clusterSize);
+
+	// Calculate the number of clusters that are free
+	fseek(fsFile, calcOffset(fsBootRecord.fatTable), SEEK_SET);
+	UINT totalClusters = 0;
+	UINT freeClusters  = 0;
+	UINT currentAddr   = calcOffset(fsBootRecord.fatTable);
+	UINT fatTableEnd   = currentAddr + fsBootRecord.clusterSize;
+	while(currentAddr < fatTableEnd) {
+		// Read in the cluster and find out if its available
+		FatEntry e;
+		fread(&e, sizeof(FatEntry), 1, fsFile);
+		if(e == FAT_FREE_CLUSTER) {
+			++freeClusters;
+		}
+		++totalClusters;
+
+		// Advance the pointer
+		currentAddr += sizeof(FatEntry);
+	}
+
+	printf("Free Clusters:\t\t%d/%d\n", freeClusters, totalClusters);
+	printf("Free Space:\t\t%d\n", freeClusters * fsBootRecord.clusterSize);	
+}
 
 /**
  * Outputs all the files in the directory

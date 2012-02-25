@@ -21,6 +21,7 @@
 #define CAT_COMMAND "cat"
 #define CD_COMMAND "cd"
 #define CP_COMMAND "cp"
+#define DF_COMMAND "df"
 #define HISTORY_COMMAND "history"
 #define LS_COMMAND "ls"
 #define MV_COMMAND "mv"

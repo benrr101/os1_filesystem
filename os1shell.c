@@ -194,6 +194,9 @@ int main(int argc, char *argv[]) {
 		} else if(strstr(command, MV_COMMAND) == command) {
 			// Pass the call to the fancy mv function
 			mv(command, inFS, path);
+		} else if(strstr(command, DF_COMMAND) == command) {
+			// Pass the call to the df function
+			df();
 		} else {
 			// Now that we have a complete command, we'll exec it
 			execCommand(command);

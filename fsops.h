@@ -50,6 +50,11 @@ void cpFromRootFStoFS(char *source, char *dest);
 void cpFromFStoFS(char *source, char *dest);
 
 /**
+ * Prints out the information about the filesystem.
+ */
+void df();
+
+/**
  * Outputs all the files in the directory
  * @param	char* command	the command from the command line
  */
