@@ -112,6 +112,7 @@ void cp(char *command, int inFS, char *fsPath) {
 	if(source == NULL || dest == NULL || strtok(NULL, " ") != NULL) {
 		fprintf(stderr, "Error: Missing file operand\n");
 		fprintf(stderr, "Usage: cp source_file destination_file\n");
+		return;
 	}
 
 	// Step 2) Is the source in the filesystem?
@@ -434,6 +435,7 @@ void mv(char *command, int inFS, char *fsPath) {
 	if(source == NULL || dest == NULL || strtok(NULL, " ") != NULL) {
 		fprintf(stderr, "Error: Missing file operant\n");
 		fprintf(stderr, "Usage: mv source_file destination_file\n");
+		return;
 	}
 
 	// Step 2) Is the source/dest in the filesystem
