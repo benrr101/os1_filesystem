@@ -23,6 +23,7 @@
 #define CP_COMMAND "cp"
 #define HISTORY_COMMAND "history"
 #define LS_COMMAND "ls"
+#define MV_COMMAND "mv"
 #define PWD_COMMAND "pwd"
 #define RM_COMMAND "rm"
 #define TOUCH_COMMAND "touch"

@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "fs.h"
+#include "os1shell.h"
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
 
@@ -148,6 +149,26 @@ FSPTR getClusterFromFatAddress(UINT fatAddress) {
 	// return it
 	return fatAddress;
 }
+
+int isPathInFS(char *path, const char *fsPath, int inFS) {
+	// Case 1: path starts with /fsPath
+	if(strstr(path, fsPath) == path) {
+		// Yep we're in the filesystem, trim off the /fspath
+		strtok(path, "/");
+		path = strtok(NULL, "/");
+
+		return true;
+	}
+
+	// Case 2: path starts with /
+	if(path[0] == '/') {
+		// Nope, we're not in the filesystem
+		return false;
+	}
+
+	// Case 3: plain filename
+	return inFS;
+}		
 
 FatEntry lookupFAT(FSPTR curCluster) {
 	// Get the current position in the file

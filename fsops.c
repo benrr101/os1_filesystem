@@ -386,8 +386,72 @@ void ls(char *command) {
 		// Get the next cluster from FAT
 		dirCluster = lookupFAT(dirCluster);
 	}
-}
+}	
+
+void mv(char *command, int inFS, char *fsPath) {
+	// Determine what mode we're going to use to do the copying
+	// Step 0) Duplicate the command so we don't destroy it
+	char commandCpy[BUFFER_SIZE];
+	strncpy(commandCpy, command, BUFFER_SIZE);
+
+	// Step 1) Tokenize the command into the mv and the two operands
+	strtok(command, " ");
+	char *source = strtok(NULL, " ");
+	char *dest   = strtok(NULL, " ");
+
+	// If we have more or less tokens, it's messed up
+	if(source == NULL || dest == NULL || strtok(NULL, " ") != NULL) {
+		fprintf(stderr, "Error: Missing file operant\n");
+		fprintf(stderr, "Usage: mv source_file destination_file\n");
+	}
+
+	// Step 2) Is the source/dest in the filesystem
+	int fromFS = isPathInFS(source, fsPath, inFS);
+	int toFS   = isPathInFS(dest, fsPath, inFS);
+
+	// CASES ///////////////////////////////////////////////////////////
+	if(!fromFS && !toFS) {
+		// Case 1: Moving from root fs to root fs
+		// Tell the OS to handle this
+		printf("%s\n", commandCpy);
+		execCommand(commandCpy);
+	} else if(fromFS && !toFS) {
+		// Case 2: Moving from the filesystem into the root fs
+		printf("Copying from FS to root FS\n");
+		cpFromFStoRootFS(source, dest);
+		removeFile(source);
+	} else if(toFS && !fromFS) {
+		// Case 3: Moving from root fs to the filesystem
+		printf("Copying from root FS to FS\n");
+		cpFromRootFStoFS(source, dest);
 		
+		// Build a command to remove the root fs file
+		char rmCommand[BUFFER_SIZE];
+		strncpy(rmCommand, "rm ", BUFFER_SIZE);
+		strncat(rmCommand, source, BUFFER_SIZE);
+		rm(rmCommand);
+	} else {
+		printf("Copying from fs to fs\n");
+		// Case 4: Moving from fs to fs
+		// Goto the location of the file's directory table entry
+		UINT dirTableAddr = getDirTableAddressByName(source);
+		if(dirTableAddr == 0) {
+			// File doesn't exist
+			fprintf(stderr, "Error: source file does not exist\n");
+			return;
+		}
+		fseek(fsFile, dirTableAddr, SEEK_SET);
+
+		// Load the directory entry
+		DirectoryEntry dir;
+		fread(&dir, sizeof(DirectoryEntry), 1, fsFile);
+		
+		// Copy the new name to the dir entry and write it out
+		strncpy(dir.fileName, dest, 112);
+		fseek(fsFile, -1 * sizeof(DirectoryEntry), SEEK_CUR);
+		fwrite(&dir, sizeof(DirectoryEntry), 1, fsFile);
+	}
+}
 
 void touch(char *command) {
 	// Copy the command to a temp var for destruction by strtok

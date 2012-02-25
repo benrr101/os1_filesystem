@@ -17,6 +17,7 @@ FSPTR getClusterFromFatAddress(UINT fatAddress);
 UINT getDirTableAddressByName(char name[112]);
 UINT getFirstFreeDirEntry();
 UINT getFirstFreeFATEntry();
+int isPathInFS(char *path, const char *fsPath, int inFS);
 FatEntry lookupFAT(FSPTR curCluster);
 
 #endif

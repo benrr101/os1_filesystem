@@ -191,6 +191,9 @@ int main(int argc, char *argv[]) {
 		} else if(strstr(command, CP_COMMAND) == command) {
 			// Pass the call to the fancy cp function
 			cp(command, inFS, path);
+		} else if(strstr(command, MV_COMMAND) == command) {
+			// Pass the call to the fancy mv function
+			mv(command, inFS, path);
 		} else {
 			// Now that we have a complete command, we'll exec it
 			execCommand(command);
