@@ -144,6 +144,7 @@ void cp(char *command, int inFS, char *fsPath) {
 	} else if(toFS && !fromFS) {
 		// Case 3: Copying from root fs to the filesystem
 		printf("Copying from root FS to FS\n");
+		cpFromRootFStoFS(source, dest);
 	} else {
 		printf("Copying from fs to fs\n");
 	}
@@ -203,7 +204,7 @@ void cpFromFStoRootFS(char *source, char *dest) {
 	fclose(destFile);
 }
 
-void cpfromRootFStoFS(char *source, char *dest) {
+void cpFromRootFStoFS(char *source, char *dest) {
 	// Open the source file
 	FILE *sourceFile = fopen(source, "r");
 	if(sourceFile == NULL) {
@@ -231,14 +232,53 @@ void cpfromRootFStoFS(char *source, char *dest) {
 	UINT clusterStart = cluster * fsBootRecord.clusterSize;
 	UINT currentAddr  = clusterStart;
 	UINT clusterEnd   = clusterStart + fsBootRecord.clusterSize;
-	fseek(fsFile, result * fsBootRecord, SEEK_SET);
+	fseek(fsFile, currentAddr, SEEK_SET);
 	
 	// Iterate until we reach the end of the file
 	char c;
+	UINT bytesRead = 0;
 	while(fread(&c, sizeof(char), 1, sourceFile) == 1) {
 		// Are we at the end of the cluster?
-		if(currentAddr 
+		if(currentAddr >= clusterEnd) {
+			// Allocate a new cluster and continue
+			cluster = allocateCluster(cluster);
 
+			// Ensure we got a new cluster
+			if(cluster == 0) {
+				// Bomb out
+				fprintf(stderr,
+					"Error: could not allocate more space\n");
+				return;
+			}
+ 			
+			// Seek to the cluster location
+			clusterStart = cluster*fsBootRecord.clusterSize;
+			currentAddr  = clusterStart;
+			clusterEnd   = clusterStart+fsBootRecord.clusterSize;
+			fseek(fsFile, currentAddr, SEEK_SET);
+		}
+
+		// Read a byte, write a byte (byte already read)
+		fwrite(&c, sizeof(char), 1, fsFile);
+		
+		// INCREMENT da COUNTA's
+		++currentAddr;
+		++bytesRead;
+	}
+
+	// Rewrite the file's directory entry to update the size
+	dirAddr = getDirTableAddressByName(dest);
+	if(dirAddr == 0) {
+		// WTF. We gots a problem.
+		fprintf(stderr, "Error: File failed to be found after copy.\n");
+		return;
+	}
+	fseek(fsFile, dirAddr, SEEK_SET);
+	DirectoryEntry dir;
+	fread(&dir, sizeof(DirectoryEntry), 1, fsFile);
+	dir.size = bytesRead;
+	fseek(fsFile, -1 * sizeof(DirectoryEntry), SEEK_CUR);
+	fwrite(&dir, sizeof(DirectoryEntry), 1, fsFile);
 }
 
 void ls(char *command) {
