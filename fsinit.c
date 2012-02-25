@@ -211,9 +211,4 @@ void loadFS(char *name) {
 	// Load the MBR into the mbr global
 	fseek(fsFile, 0, SEEK_SET);
 	fread(&fsBootRecord, sizeof(MBR), 1, fsFile);
-
-	printf("Cluster Size: %d\n", fsBootRecord.clusterSize);
-	printf("MaxFS   Size: %d\n", fsBootRecord.maxSize);
-	printf("rootDir Addr: %d\n", fsBootRecord.rootDir);
-	printf("fatTableAddr: %d\n", fsBootRecord.fatTable);
 }
