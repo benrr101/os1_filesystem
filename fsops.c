@@ -105,53 +105,21 @@ void cp(char *command, int inFS, char *fsPath) {
 	}
 
 	// Step 2) Is the source in the filesystem?
-	int fromFS = false;
-	if(
-		strstr(source, fsPath) == source		// Eg: /fsName/file
-		|| (inFS && getDirTableAddressByName(source)) 	// Eg: fileinfs
-	) {
-		// Source is in the filesystem
-		fromFS = true;
-
-		// Remove the fsPath from the source path if needed
-		if(strstr(source, fsPath) == source) {
-			strtok(source, "/");
-			source = strtok(NULL, "/");
-		}
-	}
-
-	// Step 3) Is the destination in the filesystem?
-	int toFS = false;
-	if(
-		strstr(dest, fsPath) == dest		// Eg: /fsName/file
-		|| inFS && strstr(dest, "/") != dest	// Doesn't start with /
-	) {
-		// Destination is in the filesystem
-		toFS = true;
-		
-		// Strip off the /fs
-		if(strstr(dest, fsPath) == dest) {
-			strtok(dest, "/");
-			dest = strtok(NULL, "/");
-		}
-	}
+	int fromFS = isPathInFS(&source, fsPath, inFS);
+	int toFS   = isPathInFS(&dest, fsPath, inFS);
 	
 	// CASES ///////////////////////////////////////////////////////////
 	if(!fromFS && !toFS) {
 		// Case 1: Copying from root fs to root fs
 		// Tell the OS to handle this
-		printf("%s\n", commandCpy);
 		execCommand(commandCpy);
 	} else if(fromFS && !toFS) {
 		// Case 2: Copying from the filesystem into the root fs
-		printf("Copying from FS to root FS\n");
 		cpFromFStoRootFS(source, dest);
 	} else if(toFS && !fromFS) {
 		// Case 3: Copying from root fs to the filesystem
-		printf("Copying from root FS to FS\n");
 		cpFromRootFStoFS(source, dest);
 	} else {
-		printf("Copying from fs to fs\n");
 		cpFromFStoFS(source, dest);
 	}
 }
@@ -408,22 +376,18 @@ void mv(char *command, int inFS, char *fsPath) {
 	// Step 2) Is the source/dest in the filesystem
 	int fromFS = isPathInFS(&source, fsPath, inFS);
 	int toFS   = isPathInFS(&dest, fsPath, inFS);
-	printf("Source: %s\nDest: %s\n", source, dest);
 
 	// CASES ///////////////////////////////////////////////////////////
 	if(!fromFS && !toFS) {
 		// Case 1: Moving from root fs to root fs
 		// Tell the OS to handle this
-		printf("%s\n", commandCpy);
 		execCommand(commandCpy);
 	} else if(fromFS && !toFS) {
 		// Case 2: Moving from the filesystem into the root fs
-		printf("Copying from FS to root FS\n");
 		cpFromFStoRootFS(source, dest);
 		removeFile(source);
 	} else if(toFS && !fromFS) {
 		// Case 3: Moving from root fs to the filesystem
-		printf("Copying from root FS to FS\n");
 		cpFromRootFStoFS(source, dest);
 		
 		// Build a command to remove the root fs file
@@ -432,7 +396,6 @@ void mv(char *command, int inFS, char *fsPath) {
 		strncat(rmCommand, source, BUFFER_SIZE);
 		rm(rmCommand);
 	} else {
-		printf("Copying from fs to fs\n");
 		// Case 4: Moving from fs to fs
 		// Goto the location of the file's directory table entry
 		UINT dirTableAddr = getDirTableAddressByName(source);
