@@ -401,7 +401,7 @@ void ls(char *command) {
 			time_t time = e.creationDate;
 			timeTM = localtime(&time);
 			char date[13];
-			strftime(&date, 13, "%b %d %H:%M", timeTM);
+			strftime((char *)&date, 13, "%b %d %H:%M", timeTM);
 			
 			if(e.fileName[0] != DIR_ENTRY_AVAILABLE &&
 				e.fileName[0] != DIR_ENTRY_DELETED) {

@@ -49,7 +49,7 @@ void createFS(char *name) {
 	
 	// Get the input from user
 	char buf[20];
-	gets(buf);
+	fgets(buf, 20, stdin);
 	// Process the input
 	UINT maxSize;
 	int replacements = sscanf(buf, "%u", &maxSize);
@@ -68,7 +68,7 @@ void createFS(char *name) {
 
 	// Prompt the user for the cluster size
 	printf("Enter the cluster size for this filesystem in KB [8]: ");
-	gets(buf);
+	fgets(buf, 20, stdin);
 	UINT clusterSize;
 	replacements = sscanf(buf, "%u\n", &clusterSize);
 	if(replacements == 0 || replacements == EOF) {
