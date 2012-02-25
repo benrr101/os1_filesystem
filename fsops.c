@@ -41,6 +41,11 @@ void cat(char *command) {
 
 		// Step 1) Lookup the directory entry
 		UINT dirAddr = getDirTableAddressByName(fileName);
+		if(dirAddr == 0) {
+			// File doesn't exist, so back out
+			fprintf(stderr, "Error: file does not exist\n");
+			return;
+		}
 		fseek(fsFile, dirAddr, SEEK_SET);
 		DirectoryEntry dir;
 		fread(&dir, sizeof(DirectoryEntry), 1, fsFile);

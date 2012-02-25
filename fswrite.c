@@ -74,6 +74,11 @@ FSPTR createFile(char name[112]) {
 void removeFile(char name[112]) {
 	// Find the file in the directory table
 	UINT dirAddr = getDirTableAddressByName(name);
+	if(dirAddr == 0) {
+		// File doesn't exist, bomb out
+		fprintf(stderr, "Error: File does not exist\n");
+		return;
+	}
 	fseek(fsFile, dirAddr, SEEK_SET);
 	DirectoryEntry dir;
 	fread(&dir, sizeof(DirectoryEntry), 1, fsFile);
