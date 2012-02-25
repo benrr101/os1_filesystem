@@ -23,6 +23,10 @@
 
 // FUNCTIONS ///////////////////////////////////////////////////////////////
 
+/**
+ * Outputs all the characters of the requested file
+ * @param	char* command	the command from the command line
+ */
 void cat(char *command) {
 	//Copy the command to a temp var for destruction by strtok
 	char commandCpy[BUFFER_SIZE];
@@ -87,6 +91,12 @@ void cat(char *command) {
 	}
 }
 
+/**
+ * Copies a file from anywhere to anywhere
+ * @param	char* 	command	the command from the command line
+ * @param	bool	inFS	Whether or not the shell is in the fs
+ * @param	char*	fsPath	The path to the filesystem like /filesystem
+ */
 void cp(char *command, int inFS, char *fsPath) {
 	// Determine what mode we're going to use to do the copying
 	// Step 0) Duplicate the command so we don't destroy it
@@ -124,6 +134,11 @@ void cp(char *command, int inFS, char *fsPath) {
 	}
 }
 
+/**
+ * Copies a file from the virtual fs to the root fs
+ * @param	char*	source	The source file location
+ * @param	char*	dest	The destination file location
+ */
 void cpFromFStoRootFS(char *source, char *dest) {
 	// Does the file exist?
 	UINT dirAddr = getDirTableAddressByName(source);
@@ -178,6 +193,11 @@ void cpFromFStoRootFS(char *source, char *dest) {
 	fclose(destFile);
 }
 
+/**
+ * Copies a file from the root fs to the virtual fs
+ * @param	char*	source	The source file location
+ * @param	char*	dest	The destination file location
+ */
 void cpFromRootFStoFS(char *source, char *dest) {
 	// Open the source file
 	FILE *sourceFile = fopen(source, "r");
@@ -255,6 +275,11 @@ void cpFromRootFStoFS(char *source, char *dest) {
 	fwrite(&dir, sizeof(DirectoryEntry), 1, fsFile);
 }
 
+/**
+ * Copies a file from the virtualFS to the virtualFS
+ * @param	char*	source	The source file location
+ * @param	char*	dest	The destination file location
+ */
 void cpFromFStoFS(char *source, char *dest) {
 	// Does the source file exist?
 	UINT sourceDirAddr = getDirTableAddressByName(source);
@@ -317,6 +342,10 @@ void cpFromFStoFS(char *source, char *dest) {
 	}
 }	
 
+/**
+ * Outputs all the files in the directory
+ * @param	char* command	the command from the command line
+ */
 void ls(char *command) {
 	// Goto the directory table and get an entry
 	FSPTR dirCluster = fsBootRecord.rootDir;
@@ -356,6 +385,12 @@ void ls(char *command) {
 	}
 }	
 
+/**
+ * Moves a file from anywhere to anywhere using a combo of cp's and rm's
+ * @param	char* 	command	the command from the command line
+ * @param	bool	inFS	Whether or not the shell is in the fs
+ * @param	char*	fsPath	The path to the filesystem like /filesystem
+ */
 void mv(char *command, int inFS, char *fsPath) {
 	// Determine what mode we're going to use to do the copying
 	// Step 0) Duplicate the command so we don't destroy it
@@ -417,6 +452,10 @@ void mv(char *command, int inFS, char *fsPath) {
 	}
 }
 
+/**
+ * Creates an empty file(s)
+ * @param	char* command	the command from the command line
+ */
 void touch(char *command) {
 	// Copy the command to a temp var for destruction by strtok
 	char commandCpy[BUFFER_SIZE];
@@ -458,6 +497,10 @@ void touch(char *command) {
 	}
 }
 
+/**
+ * Removes the requested file(s)
+ * @param	char* command	the command from the command line
+ */
 void rm(char *command) {
 	// Copy the command to a temp var for destruction by strtok
 	char commandCpy[BUFFER_SIZE];
