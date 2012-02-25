@@ -150,18 +150,18 @@ FSPTR getClusterFromFatAddress(UINT fatAddress) {
 	return fatAddress;
 }
 
-int isPathInFS(char *path, const char *fsPath, int inFS) {
+int isPathInFS(char **path, const char *fsPath, int inFS) {
 	// Case 1: path starts with /fsPath
-	if(strstr(path, fsPath) == path) {
+	if(strstr(*path, fsPath) == *path) {
 		// Yep we're in the filesystem, trim off the /fspath
-		strtok(path, "/");
-		path = strtok(NULL, "/");
-
+		strtok(*path, "/");
+		*path = strtok(NULL, "/");
+		
 		return true;
 	}
 
 	// Case 2: path starts with /
-	if(path[0] == '/') {
+	if(*(path)[0] == '/') {
 		// Nope, we're not in the filesystem
 		return false;
 	}

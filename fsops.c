@@ -406,8 +406,9 @@ void mv(char *command, int inFS, char *fsPath) {
 	}
 
 	// Step 2) Is the source/dest in the filesystem
-	int fromFS = isPathInFS(source, fsPath, inFS);
-	int toFS   = isPathInFS(dest, fsPath, inFS);
+	int fromFS = isPathInFS(&source, fsPath, inFS);
+	int toFS   = isPathInFS(&dest, fsPath, inFS);
+	printf("Source: %s\nDest: %s\n", source, dest);
 
 	// CASES ///////////////////////////////////////////////////////////
 	if(!fromFS && !toFS) {
